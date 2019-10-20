@@ -13,8 +13,8 @@ def base_extract(node, path_desired, rel):
 	path = "{}/{}".format(path_desired, rel) 
 	os.makedirs("{}/{}".format(path_desired, rel), exist_ok=True) 
 	for k in node[2]: 
-		adio_series, rate = librosa.core.load('{}/{}'.format(node[0], k)) 
-		mfcc_features = librosa.feature.mfcc(adio_series, rate) 
+		aud_series, rate = librosa.core.load('{}/{}'.format(node[0], k)) 
+		mfcc_features = librosa.feature.mfcc(aud_series, rate) 
 		numpy.savetxt("{}/{}.csv".format(path, k), mfcc_features, delimiter=",")
 			
 def extract_mfcc_processes(start_path, path_desired, quantity = 8): 
