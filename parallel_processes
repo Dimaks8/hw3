@@ -5,41 +5,25 @@ import os
 import librosa 
 import numpy 
 import soundfile 
-
 import tqdm 
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 
 
-def extact_mfcc_worker(node, path_to_result_folder, rel_path): 
-	path_to_result = "{}/{}".format(path_to_result_folder, rel_path) 
-	os.makedirs("{}/{}".format(path_to_result_folder, rel_path), exist_ok=True) 
-	for f in node[2]: 
-		adio_series, rate = librosa.core.load('{}/{}'.format(node[0], f)) 
+def base_extract(node, path_desired, rel): 
+	path = "{}/{}".format(path_desired, rel) 
+	os.makedirs("{}/{}".format(path_desired, rel), exist_ok=True) 
+	for k in node[2]: 
+		adio_series, rate = librosa.core.load('{}/{}'.format(node[0], k)) 
 		mfcc_features = librosa.feature.mfcc(adio_series, rate) 
-		numpy.savetxt("{}/{}.csv".format(path_to_result, f), mfcc_features, delimiter=",")
-		
-def extract_mfcc(path_to_start_folder, path_to_result_folder): 
-	tree = tqdm(os.walk(path_to_start_folder)) 
-	for node in tree: 
-		rel_path = os.path.relpath(node[0]) 
-		if node[2]: 
-			extact_mfcc_worker(node, path_to_result_folder, rel_path)
+		numpy.savetxt("{}/{}.csv".format(path, k), mfcc_features, delimiter=",")
 			
-def extract_mfcc_processes(path_to_start_folder, path_to_result_folder, num_proc=8): 
-	tree = tqdm(os.walk(path_to_start_folder)) 
-	with ProcessPoolExecutor(max_workers=num_proc) as pool: 
+def extract_mfcc_processes(start_path, path_desired, quantity = 8): 
+	tree = tqdm(os.walk(start_path)) 
+	with ProcessPoolExecutor(max_workers = quantity) as pool: 
 		for node in tree: 
-			rel_path = os.path.relpath(node[0]) 
+			rel = os.path.relpath(node[0]) 
 			if node[2]: 
-				pool.submit(extact_mfcc_worker, node, path_to_result_folder, rel_path)
-				
-def extract_mfcc_threads(path_to_start_folder, path_to_result_folder, num_threads=8): 
-	tree = tqdm(os.walk(path_to_start_folder)) 
-	with ThreadPoolExecutor(max_workers=num_threads) as pool: 
-		for node in tree: 
-			rel_path = os.path.relpath(node[0]) 
-			if node[2]: 
-				pool.submit(extact_mfcc_worker, node, path_to_result_folder, rel_path)
+				pool.submit(base_extract, node, path_desired, rel)
 				
 
 extract_mfcc_processes("aac", "result_proc")
